@@ -1,6 +1,8 @@
 /game_certificate.jks
 /bor.pak
-/output/OpenBOR.apk
+
+/output/**/*
+!/output/.gitkeep
 
 /android-sdk/**/*
 !/android-sdk/.gitkeep
