@@ -1,14 +1,15 @@
-FROM archlinux:base-devel-20251019.0.436919
+FROM archlinux:base-devel-20251019.0.436919 as android-sdk-builder
 
-# Environment variables
+# Build arguments
 ARG SDK_VERSION="9477386_latest"
 ARG APKTOOL_VERSION="2.12.1"
-ENV GAME_APK_NAME "com.mycompany.gamename"
-ENV GAME_NAME "Game Name"
 
-# Install operational system dependencies
+# Install dependencies
 RUN pacman -Syu --noconfirm && \
-  pacman -S jdk11-openjdk jdk17-openjdk unzip imagemagick --noconfirm
+  pacman -S jdk11-openjdk jdk17-openjdk unzip --noconfirm && \
+  rm -R /var/cache/pacman/pkg/*
+RUN mkdir /apktool && \
+  curl -L "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_""$APKTOOL_VERSION"".jar" --output /apktool/apktool.jar
 
 # Copy OpenBOR repository
 COPY openbor /openbor
@@ -19,10 +20,7 @@ RUN ./version.sh && \
   sed -i "s|org\.openbor\.engine|aaaa.bbbbb.ccccc|g" /openbor/engine/android/app/build.gradle && \
   sed -i "s|\"Openbor\"|\"ZZZZZ\"|g" /openbor/engine/android/app/build.gradle
 
-RUN mkdir /apktool && \
-  curl -L "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_""$APKTOOL_VERSION"".jar" --output /apktool/apktool.jar
-
-# Install Android Command-line tools
+# Create source builder
 WORKDIR /
 RUN export ANDROID_SDK_ROOT=/android-sdk && \
   mkdir /android-sdk && \
@@ -55,9 +53,24 @@ RUN export ANDROID_SDK_ROOT=/android-sdk && \
   rm -R /android-sdk ~/.gradle ~/.android && \
   unset ANDROID_SDK_ROOT
 
+
+# Another image with only used resources
+FROM eclipse-temurin:17.0.17_10-jre-alpine-3.22
+
+# Environment variables
+ENV GAME_APK_NAME "com.mycompany.gamename"
+ENV GAME_NAME "Game Name"
+
+# Install dependencies
+RUN apk --update --no-cache add imagemagick
+
+# Copy files from previous build
+RUN mkdir /apktool
+COPY --from=android-sdk-builder /apktool/apktool.jar /apktool/apktool.jar
+COPY --from=android-sdk-builder /openbor-android /openbor-android
+
 # Volumes
 RUN mkdir /output
-VOLUME /game_certificate.jks
 VOLUME /bor.pak
 VOLUME /icon.png
 VOLUME /output
@@ -65,4 +78,4 @@ VOLUME /output
 # Run build
 WORKDIR /
 COPY run.sh /
-CMD ["bash", "/run.sh"]
+CMD ["sh", "/run.sh"]
