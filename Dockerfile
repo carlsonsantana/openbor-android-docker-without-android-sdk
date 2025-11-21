@@ -2,10 +2,6 @@ FROM archlinux:base-devel-20251019.0.436919
 
 # Environment variables
 ENV SDK_VERSION "9477386_latest"
-ENV ANDROID_SDK_ROOT /android-sdk
-ENV KEYSTORE_NAME keystore_name
-ENV KEYSTORE_KEY_PASSWORD keystore_password
-ENV KEYSTORE_STORE_PASSWORD keystore_password
 ENV GAME_APK_NAME "com.mycompany.gamename"
 ENV GAME_NAME "Game Name"
 
@@ -27,7 +23,8 @@ RUN mkdir /apktool && \
 
 # Install Android Command-line tools
 WORKDIR /
-RUN mkdir /android-sdk && \
+RUN export ANDROID_SDK_ROOT=/android-sdk && \
+  mkdir /android-sdk && \
   curl -L https://dl.google.com/android/repository/commandlinetools-linux-${SDK_VERSION}.zip --output /android-sdk/cmdline-tools.zip && \
   unzip /android-sdk/cmdline-tools.zip && \
   mkdir -p /android-sdk/cmdline-tools && \
@@ -54,7 +51,8 @@ RUN mkdir /android-sdk && \
   rm /openbor/engine/android/app/src/main/res/drawable-ldpi/icon.png && \
   rm /openbor/engine/android/app/src/main/res/drawable-mdpi/icon.png && \
   rm /openbor/engine/android/app/src/main/assets/bor.pak && \
-  rm -R /android-sdk ~/.gradle ~/.android
+  rm -R /android-sdk ~/.gradle ~/.android && \
+  unset ANDROID_SDK_ROOT
 
 # Volumes
 RUN mkdir /output
