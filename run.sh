@@ -6,9 +6,9 @@ set -e
 rm -f /output/openbor.apk
 
 # Convert icons
-convert /icon.png -resize 72x72 /openbor-android/res/drawable-hdpi/icon.png
-convert /icon.png -resize 36x36 /openbor-android/res/drawable-ldpi/icon.png
-convert /icon.png -resize 48x48 /openbor-android/res/drawable-mdpi/icon.png
+magick /icon.png -resize 72x72 /openbor-android/res/drawable-hdpi/icon.png
+magick /icon.png -resize 36x36 /openbor-android/res/drawable-ldpi/icon.png
+magick /icon.png -resize 48x48 /openbor-android/res/drawable-mdpi/icon.png
 
 # Rename APK name and application ID
 sed -i "s|ZZZZZ|$GAME_NAME|g" /openbor-android/res/values/strings.xml
